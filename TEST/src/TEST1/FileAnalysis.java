@@ -13,6 +13,7 @@ public class FileAnalysis {
 		String str = null;
 		String OldThreadId = null;
 		boolean isExist = false;
+		boolean isNewBlock = false;
 		
 		List<ThreadPacks> list = new ArrayList<ThreadPacks>();
 		try {
@@ -27,20 +28,39 @@ public class FileAnalysis {
 					String threadTimeLable = strArr[0];
 					String threadId = strArr[1];
 					String threadLableId = strArr[2];
-					for (int i = 0; i < list.size(); i++ ) {
-						if ( threadId.equals(list.get(i).getThreadId())) {
-							isExist =true;
-							break;
-						}
+					if (strThreadBody.indexOf(FLAG)  != -1) {
+						isNewBlock = true;
 					}
-					if ((OldThreadId == null) || ( threadId.equals(OldThreadId))) {
+					
+					if (OldThreadId == null ) {
 						threadPacks.addTimeLable(threadTimeLable);
 						threadPacks.setThreadId(threadId);
 						threadPacks.addLableId(threadLableId);
 						threadPacks.addRecordBody(strThreadBody);
 						list.add(threadPacks);
-						OldThreadId = threadId;
+						OldThreadId = threadId;						
 					}
+					else if (threadId.equals(OldThreadId)) {
+						threadPacks.addTimeLable(threadTimeLable);
+						threadPacks.setThreadId(threadId);
+						threadPacks.addLableId(threadLableId);
+						threadPacks.addRecordBody(strThreadBody);
+						list.add(threadPacks);
+						OldThreadId = threadId;						
+					} else {
+						for (int i = 0; i < list.size(); i++ ) {
+							if ( threadId.equals(list.get(i).getThreadId())) {
+								isExist =true;
+								break;
+							}
+						if (isExist) {
+							list.get(i).addTimeLable(threadTimeLable);
+							list.get(i).addLableId(threadLableId);
+							list.get(i).addRecordBody(strThreadBody);
+
+						}
+					}
+
 					
 
 				}
