@@ -22,7 +22,8 @@ public class LogAnalysis3 {
 		}
 	}
 	
-	private Map<String,ThreadPacks> parseFile(List<File> listInputFile,final String FLAG1){
+	
+	private Map<String,ThreadPacks> parseFile(List<File> listInputFile,final String FLAG1,String[] featureNameArr){
 
 		boolean isNewBlock = false;
 		String str = null;
@@ -31,49 +32,52 @@ public class LogAnalysis3 {
 		//List<ThreadPacks> listTp = new ArrayList<ThreadPacks>();
 		//List<String> listThread = new ArrayList<String>();
 		//ThreadPacks lastTp=null;
-		
+
 		try{
 			int fileIndex = 0;
 			while (fileIndex < listInputFile.size()){
-				BufferedReader br = new BufferedReader(new FileReader(listInputFile.get(fileIndex)));
-				fileIndex++;
-				while ((str = br.readLine()) != null ) {
-					if (str.startsWith("[")) {    // if it's the real record with [timestamp] field
-						RecordPacks recordPack = new RecordPacks(str);
-						recordPack.setThreadId(recordPack.getThreadIdLable());
-					
-						isNewBlock =  (str.matches(FLAG1)) ;
-						// find the correct ThreadPacks index
-						ThreadPacks tps=ths.getPack(recordPack.getThreadId());
-
-						// If the threadPack with certain threadId is existed 
-						if(tps.getBlockNum()>0) {
-							//If it's not a new block 
-							if (!isNewBlock){
-								// add the recordPack to the specific threadPack's last block
-								tps.getLastBlockPack().addRecordPack(recordPack);
-							}else{   // If it's a new block
-								// Create a new blockPack object, and add the current recordPack to it
-								BlockPacks newBp = new BlockPacks(recordPack);
-								// Add the new blockPack into the specific ThreadPack
-								tps.addBlockPack(newBp);
-							}		
-						}else{ //If the threadPack with certain threadId isn't existed 
-							// Create a new BlockPack object and add the current recordPack to it
-							BlockPacks newBp = new BlockPacks(recordPack);
-							tps.addBlockPack(newBp);
-						}
+				try(BufferedReader br = new BufferedReader(new FileReader(listInputFile.get(fileIndex)))) {
+					fileIndex++;
+					int[] lastFeatureNumArr = new int[featureNameArr.length];
+					//System.arraycopy(src, srcPos, dest, destPos, length)
+					while ((str = br.readLine()) != null ) {
+						if (str.startsWith("[")) {    // if it's the real record with [timestamp] field
+							RecordPacks recordPack = new RecordPacks(str);
+							recordPack.setThreadId(recordPack.getThreadIdLable());
 						
-					}else {   // the record just read is not the first line
-						// if there is no ThreadPacks object created before, just withdraw the record just read
-						if(ths.last==null) {
-							break;
-						} else {
-							ths.last.getLastBlockPack().getLastRecordPack().addRecordLine(str);
+							isNewBlock =  (str.matches(FLAG1)) ;
+							// find the correct ThreadPacks index
+							ThreadPacks tps=ths.getPack(recordPack.getThreadId());
+	
+							// If the threadPack with certain threadId is existed 
+							if(tps.getBlockNum()>0) {
+								//If it's not a new block 
+								if (!isNewBlock){
+									// add the recordPack to the specific threadPack's last block
+									tps.getLastBlockPack().addRecordPack(recordPack);
+								}else{   // If it's a new block
+									lastFeatureNumArr=new int[featureNameArr.length];
+									// Create a new blockPack object, and add the current recordPack to it
+									BlockPacks newBp = new BlockPacks(recordPack);
+									// Add the new blockPack into the specific ThreadPack
+									tps.addBlockPack(newBp);
+								}		
+							}else{ //If the threadPack with certain threadId isn't existed 
+								// Create a new BlockPack object and add the current recordPack to it
+								BlockPacks newBp = new BlockPacks(recordPack);
+								tps.addBlockPack(newBp);
+							}
+							
+						}else {   // the record just read is not the first line
+							// if there is no ThreadPacks object created before, just withdraw the record just read
+							if(ths.last==null) {
+								break;
+							} else {
+								ths.last.getLastBlockPack().getLastRecordPack().addRecordLine(str);
+							}
 						}
-					}		
+					}
 				}
-				br.close();
 			}
 		}catch (IOException e){
 			e.printStackTrace();
@@ -543,6 +547,7 @@ class BlockPacks{
 class ThreadPacks{
 	private String threadPackId;
 	private List<BlockPacks> listBlockPack= new ArrayList<BlockPacks>();
+	private BlockPacks lastBlock = null;
 	
 	public ThreadPacks(String threadPackId){
 		this.threadPackId =threadPackId;
@@ -553,6 +558,18 @@ class ThreadPacks{
 		this.listBlockPack.add(blockPack);
 	}*/
 	
+	public void coutFeature(FeaturePacks fp, String[] featureArr ){
+		for (int i = 0; i < lastBlock.getListRecordPack().size(); i++){
+			for (int j = 0; j < lastBlock.getListRecordPack().get(i).getRecordBody().size(); j ++){
+				for (String featureType:featureArr){
+					// if specific recordLine contails certain featureType
+					if (lastBlock.getListRecordPack().get(i).getRecordBody().get(j).indexOf(featureType) != -1) {
+						int i = fp
+					}
+				}
+			}
+		}
+	}
 	public String getThreadPackId(){
 		return this.threadPackId;
 	}
@@ -581,20 +598,26 @@ class ThreadPacks{
 
 class FeaturePacks{
 	private String threadId;
-	private 	List<String> listFeature = new ArrayList<String>();
-	private List<String> listFeatureBlockId = new ArrayList<String>();
-	private List<Integer> listFeatureNum = new ArrayList<Integer>();
+	// private List<String> listFeature = new ArrayList<String>();
+	// private List<String> listFeatureBlockId = new ArrayList<String>();
+	// private List<Integer> listFeatureNum = new ArrayList<Integer>();
+	private Map<String,Integer> fparks = new HashMap<String,Integer>();
 	
 	FeaturePacks(){
 		
 	}
-	
+	/**
 	FeaturePacks(String threadId, List<String> listFeature,List<Integer> listFeatureNum){
 		this.threadId = threadId;
 		this.listFeature =listFeature;
 		this.listFeatureNum = listFeatureNum;
 	}
+	*/
 	
+	FeaturePacks(String threadId, String featureType, int featureNum){
+		this.threadId = threadId;
+		this.fparks.put(featureType, featureNum);
+	}
 	public void setThreadId(String threadId){
 		this.threadId = threadId;
 	}
@@ -603,6 +626,23 @@ class FeaturePacks{
 		return this.threadId;
 	}
 	
+	public int getSpecificFeatureNum(String featureType){
+		return this.fparks.get(featureType);
+	}
+	
+	public void setSpecificFeatureNum(String featureType,int featureNum){
+		this.fparks.put(featureType, featureNum);
+	}
+	
+	public void addSpecificFeatureNum(String featureType,int featureNum){
+		if( this.fparks.get(featureType) != null) {
+			this.fparks.put(featureType, this.fparks.get(featureType) + 1);
+		} else{
+			this.fparks.put(featureType,1);
+		}
+		
+	}
+	/**
 	public List<String> getListFeature(){
 		return this.listFeature;
 	}
@@ -625,7 +665,8 @@ class FeaturePacks{
 	
 	public List<String> getListFeatureBlockId(){
 		return this.listFeatureBlockId;
-	}
+	} 
+	*/
 }
 
 class TotalCountValue{
