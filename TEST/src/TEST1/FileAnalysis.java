@@ -124,6 +124,7 @@ public class FileAnalysis {
 	
 	public List<BlockAndFeature> blockBuild(List<ThreadPacks> list, int featureTypeNum) {
 		int index = 0;
+		List<BlockAndFeature> listBlock = new ArrayList<BlockAndFeature>();
 		for (int i = 0; i < list.size(); i++) {
 			for (int j = 0; j < list.get(i).getBlockId(); j++){
 				BlockAndFeature blockBuilt = new BlockAndFeature(j,list.get(i).getThreadId(), featureTypeNum);
@@ -135,7 +136,8 @@ public class FileAnalysis {
 						index++;
 					}
 			}
-		}	
+		}
+		return listBlock;
 	}
 	
 	
@@ -204,6 +206,17 @@ class ErrorAnalysis{
 		
 	}
 }
+class RecordLine{
+	private int blockId;
+	private String mainRecord;
+	private String timeStamp;
+	private String StatusLable;
+	
+	public int getBlockId(){
+		return blockId;
+	}
+}
+
 
 class BlockAndFeature{
 	private int blockId;

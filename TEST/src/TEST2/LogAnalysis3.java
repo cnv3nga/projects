@@ -428,8 +428,6 @@ private List<FeaturePacks> errorFilter(Collection<ThreadPacks> listTp, String[] 
 	}
 	
 	public static void main(String[] args) {
-		final String label1 = ".*ResponseContextInterceptor.*将response加入ThreadLocal.*";
-	
 		int i =0;
 		List<File> listInputFile = new ArrayList<File>();
 		File confFile = null;
